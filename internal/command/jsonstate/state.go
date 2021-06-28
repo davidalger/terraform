@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/zclconf/go-cty/cty"
 	ctyjson "github.com/zclconf/go-cty/cty/json"
 
@@ -329,6 +330,15 @@ func marshalResources(resources map[string]*states.Resource, module addrs.Module
 				}
 
 				current.AttributeValues = marshalAttributeValues(riObj.Value)
+
+				// Debug logging to pin down what triggers already marked values panic
+				riCurrentAttrJson := ri.Current.AttrsJSON
+				riCurrentRedacted := ri.Current
+				riCurrentRedacted.AttrsJSON = []byte("READACTED")
+				riCurrentRedacted.Dependencies = []addrs.ConfigResource{}
+				fmt.Printf("--> %s\n", current.Address)
+				spew.Dump(riCurrentRedacted)
+				fmt.Println(string(riCurrentAttrJson))
 
 				// Mark the resource instance value with any marks stored in AttrSensitivePaths so we can build the SensitiveValues object
 				markedVal := riObj.Value.MarkWithPaths(ri.Current.AttrSensitivePaths)
